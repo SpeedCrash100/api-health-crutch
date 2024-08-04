@@ -4,6 +4,7 @@ use reqwest::Client;
 
 use crate::Config;
 
+#[derive(Debug)]
 enum State {
     Init,
     Checking,
@@ -60,6 +61,8 @@ impl Service {
             .await
             .and_then(|res| res.error_for_status());
 
+        log::debug!("Health check: {:?}", response);
+
         if let Err(e) = response {
             log::warn!("Health check failed: {:?}", e);
 
@@ -69,6 +72,10 @@ impl Service {
             }
 
             self.remaining_retries -= 1;
+            log::debug!(
+                "Health check remaining retries count: {}",
+                self.remaining_retries
+            );
         }
 
         tokio::time::sleep(Duration::from_millis(self.config.grace.check_interval_ms)).await;

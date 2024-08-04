@@ -15,9 +15,26 @@ pub mod prelude {
 #[derive(Debug, Default, Deserialize, Clone)]
 pub enum Body {
     #[default]
+    #[serde(rename = "empty")]
     Empty,
+    #[serde(rename = "string")]
     String(String),
+    #[serde(rename = "file")]
     File(PathBuf),
+}
+
+impl Body {
+    /// Convert this body into a `reqwest::Body`
+    pub fn as_body(&self) -> anyhow::Result<reqwest::Body> {
+        match self.clone() {
+            Body::Empty => Ok(reqwest::Body::default()),
+            Body::String(s) => Ok(reqwest::Body::from(s)),
+            Body::File(path) => {
+                let body = std::fs::read_to_string(path)?;
+                Ok(reqwest::Body::from(body))
+            }
+        }
+    }
 }
 
 /// A request specification
@@ -49,10 +66,10 @@ impl Request {
             );
         }
 
-        // FIXME: Missing body
         let request = client
             .request(method, self.url.clone())
             .headers(headers)
+            .body(self.body.as_body()?)
             .build()?;
 
         Ok(request)
