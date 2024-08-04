@@ -1,0 +1,31 @@
+
+
+# Main request parameters
+[request]
+url = "https://example.com/api/chat"
+method = "POST"
+
+# Headers mapping
+[request.headers]
+Authorization = "Bearer a_key"
+
+# Body of the request, can be a string or a file
+[request.body]
+string = "{ \"model\": \"llama3.1:8b-instruct-q5_K_M\", \"messages\": [{ \"role\": \"user\", \"content\": \"Write exatly one word: tree\" } ], \"keep_alive\": \"0\" }"
+# file = "request.json"
+
+[command]
+# Command to run after the health request failed
+command = "./start.sh"
+# Working directory for the command
+working_dir = "/home/deucalion/Documents/repos/ai/tabby-terraform"
+
+[grace]
+# Interval between health checks in milliseconds
+check_interval_ms = 30000
+# Number of retries before the command is run
+retry_count = 3
+# Timeout for health request in milliseconds
+timeout_ms = 30000
+# Wait time after a failed health check and command run in milliseconds
+wait_after_command_ms = 3000
