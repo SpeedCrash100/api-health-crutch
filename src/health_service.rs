@@ -1,5 +1,3 @@
-use std::time::Duration;
-
 use reqwest::Client;
 
 use crate::Config;
@@ -22,10 +20,10 @@ pub struct Service {
 impl Service {
     pub fn new(config: Config) -> anyhow::Result<Self> {
         let client = reqwest::ClientBuilder::new()
-            .connect_timeout(Duration::from_millis(config.grace.timeout_ms)) // TODO: Make configurable
+            .connect_timeout(config.grace.timeout()) // TODO: Make configurable
             .build()?;
 
-        let remaining_retries = config.grace.retry_count;
+        let remaining_retries = config.grace.retry_count();
 
         Ok(Self {
             config,
@@ -67,7 +65,7 @@ impl Service {
             log::warn!("Health check failed: {:?}", e);
 
             if self.remaining_retries == 0 {
-                self.remaining_retries = self.config.grace.retry_count;
+                self.remaining_retries = self.config.grace.retry_count();
                 return Ok(State::Failed);
             }
 
@@ -76,9 +74,12 @@ impl Service {
                 "Health check remaining retries count: {}",
                 self.remaining_retries
             );
+
+            tokio::time::sleep(self.config.grace.check_interval_failed()).await;
+        } else {
+            tokio::time::sleep(self.config.grace.check_interval()).await;
         }
 
-        tokio::time::sleep(Duration::from_millis(self.config.grace.check_interval_ms)).await;
         Ok(State::Checking)
     }
 
@@ -92,10 +93,7 @@ impl Service {
     }
 
     async fn grace_waiting(&mut self) -> anyhow::Result<State> {
-        tokio::time::sleep(Duration::from_millis(
-            self.config.grace.wait_after_command_ms,
-        ))
-        .await;
+        tokio::time::sleep(self.config.grace.wait_after_command()).await;
 
         Ok(State::Checking)
     }

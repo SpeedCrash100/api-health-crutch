@@ -23,6 +23,8 @@ working_dir = "/home/deucalion/Documents/repos/ai/tabby-terraform"
 [grace]
 # Interval between health checks in milliseconds
 check_interval_ms = 30000
+# Interval between health checks if previous one is failed in milliseconds
+check_interval_failed_ms = 30000
 # Number of retries before the command is run
 retry_count = 3
 # Timeout for health request in milliseconds

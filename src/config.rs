@@ -1,6 +1,7 @@
 use std::{
     collections::HashMap,
     path::{Path, PathBuf},
+    time::Duration,
 };
 
 use anyhow::bail;
@@ -112,16 +113,18 @@ impl Command {
 #[derive(Debug, Clone, Deserialize)]
 pub struct Grace {
     #[serde(default = "Grace::default_check_interval")]
-    pub check_interval_ms: u64,
+    check_interval_ms: u64,
+
+    check_interval_failed_ms: Option<u64>,
 
     #[serde(default = "Grace::default_retry_count")]
-    pub retry_count: u32,
+    retry_count: u32,
 
     #[serde(default = "Grace::default_timeout")]
-    pub timeout_ms: u64,
+    timeout_ms: u64,
 
     #[serde(default = "Grace::default_wait_after_command")]
-    pub wait_after_command_ms: u64,
+    wait_after_command_ms: u64,
 }
 
 impl Grace {
@@ -143,6 +146,29 @@ impl Grace {
     // 30 seconds
     pub fn default_wait_after_command() -> u64 {
         30_000
+    }
+
+    pub fn check_interval(&self) -> Duration {
+        Duration::from_millis(self.check_interval_ms)
+    }
+
+    pub fn check_interval_failed(&self) -> Duration {
+        match self.check_interval_failed_ms {
+            Some(v) => Duration::from_millis(v),
+            None => self.check_interval(),
+        }
+    }
+
+    pub fn retry_count(&self) -> u32 {
+        self.retry_count
+    }
+
+    pub fn timeout(&self) -> Duration {
+        Duration::from_millis(self.timeout_ms)
+    }
+
+    pub fn wait_after_command(&self) -> Duration {
+        Duration::from_millis(self.wait_after_command_ms)
     }
 }
 
