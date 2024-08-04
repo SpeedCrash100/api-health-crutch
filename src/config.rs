@@ -49,6 +49,7 @@ impl Request {
             );
         }
 
+        // FIXME: Missing body
         let request = client
             .request(method, self.url.clone())
             .headers(headers)
@@ -58,6 +59,7 @@ impl Request {
     }
 }
 
+/// Command to run specification
 #[derive(Debug, Deserialize, Clone)]
 pub struct Command {
     /// A command to run
@@ -88,6 +90,45 @@ impl Command {
     }
 }
 
+/// Timeouts, Retry counts, etc. To allow do not run command only if failed one time
+
+#[derive(Debug, Clone, Deserialize)]
+pub struct Grace {
+    #[serde(default = "Grace::default_check_interval")]
+    pub check_interval_ms: u64,
+
+    #[serde(default = "Grace::default_retry_count")]
+    pub retry_count: u32,
+
+    #[serde(default = "Grace::default_timeout")]
+    pub timeout_ms: u64,
+
+    #[serde(default = "Grace::default_wait_after_command")]
+    pub wait_after_command_ms: u64,
+}
+
+impl Grace {
+    // 1 second
+    pub fn default_check_interval() -> u64 {
+        1_000
+    }
+
+    // 3 times
+    pub fn default_retry_count() -> u32 {
+        3
+    }
+
+    // 30 seconds
+    pub fn default_timeout() -> u64 {
+        30_000
+    }
+
+    // 30 seconds
+    pub fn default_wait_after_command() -> u64 {
+        30_000
+    }
+}
+
 /// Main configuration for the health check and run command
 #[derive(Debug, Deserialize)]
 pub struct Config {
@@ -96,6 +137,9 @@ pub struct Config {
 
     /// A command to run when a health check fails.
     pub command: Command,
+
+    /// How often to run the health check and command.
+    pub grace: Grace,
 }
 
 impl Config {
