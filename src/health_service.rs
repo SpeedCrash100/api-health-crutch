@@ -71,7 +71,7 @@ impl Service {
             self.remaining_retries -= 1;
         }
 
-        tokio::time::sleep(Duration::from_micros(self.config.grace.check_interval_ms)).await;
+        tokio::time::sleep(Duration::from_millis(self.config.grace.check_interval_ms)).await;
         Ok(State::Checking)
     }
 
