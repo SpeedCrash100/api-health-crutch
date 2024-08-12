@@ -98,10 +98,12 @@ impl Command {
             command_builder.current_dir(working_dir);
         }
 
-        let result = command_builder.spawn()?.wait()?;
+        let result = command_builder.output()?;
 
-        if !result.success() {
-            bail!("Non-zero exit of command: {:?}", result);
+        if !result.status.success() {
+            bail!("Non-zero exit of command: {}", result.status);
+        } else {
+            log::info!("Command executed successfully");
         }
 
         Ok(())
