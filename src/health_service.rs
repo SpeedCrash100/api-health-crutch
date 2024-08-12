@@ -77,6 +77,7 @@ impl Service {
 
             tokio::time::sleep(self.config.grace.check_interval_failed()).await;
         } else {
+            self.remaining_retries = self.config.grace.retry_count();
             tokio::time::sleep(self.config.grace.check_interval()).await;
         }
 
